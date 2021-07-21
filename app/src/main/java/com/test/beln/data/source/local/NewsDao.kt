@@ -47,7 +47,7 @@ interface NewsDao {
      * @param task the task to be inserted.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTask(news: News)
+    suspend fun insertNews(news: News)
 
     /**
      * Update a task.
@@ -66,6 +66,14 @@ interface NewsDao {
      */
     @Query("DELETE FROM news WHERE id = :newsId")
     suspend fun deleteNewsById(newsId: String): Int
+
+    /**
+     * Delete a task by id.
+     *
+     * @return the number of tasks deleted. This should always be 1.
+     */
+    @Query("UPDATE News SET deleted = 0 WHERE id = :newsId")
+    suspend fun deleteNewsByIdLazy(newsId: String): Int
 
     /**
      * Delete all tasks.

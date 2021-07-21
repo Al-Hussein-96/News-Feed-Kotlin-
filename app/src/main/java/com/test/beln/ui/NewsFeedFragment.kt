@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
-import com.test.beln.R
+import androidx.lifecycle.Observer
 
 import com.test.beln.databinding.FragmentNewsFeedBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -22,7 +22,7 @@ class NewsFeedFragment : Fragment() {
     private val viewModel by viewModels<NewsViewModel>()
 
 
-    private lateinit var viewBinding: FragmentNewsFeedBinding
+    private lateinit var viewDataBinding: FragmentNewsFeedBinding
 
     private lateinit var listAdapter: NewsAdapter
 
@@ -35,23 +35,43 @@ class NewsFeedFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
-        viewBinding = FragmentNewsFeedBinding.inflate(inflater, container, false);
-        return viewBinding.root
+        viewDataBinding = FragmentNewsFeedBinding.inflate(inflater,container,false).apply {
+            viewmodel = viewModel
+        }
+        return viewDataBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewDataBinding.lifecycleOwner = this.viewLifecycleOwner
+
+
         setupListAdapter()
+
+
+
+        viewDataBinding.fab.setOnClickListener {
+            viewModel.items.observe(viewLifecycleOwner, Observer {
+                Timber.tag("Mohammad").i("Hello World")
+            })
+        }
 
     }
 
     private fun setupListAdapter() {
-        Timber.tag("Mohammad").i("setupAdapter")
-        Timber.tag("Mohammad").i("items: %s", viewModel.items.value?.size)
-        listAdapter = NewsAdapter(viewModel)
-        viewBinding.recyclerView.adapter = listAdapter
+        val viewModel = viewDataBinding.viewmodel
+
+        if(viewModel != null){
+            listAdapter = NewsAdapter(viewModel)
+            viewDataBinding.recyclerView.adapter = listAdapter
+        }else{
+            Timber.tag("Mohammad").w("ViewModel not initialized when attempting to set up adapter.")
+
+        }
+
+
 
     }
 

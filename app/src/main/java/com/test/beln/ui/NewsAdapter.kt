@@ -8,18 +8,33 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.test.beln.data.News
 import com.test.beln.databinding.ItemNewsBinding
+import timber.log.Timber
 
 class NewsAdapter(private val viewModel: NewsViewModel) :
     ListAdapter<News, NewsAdapter.ViewHolder>(NewsDiffCallback()) {
 
 
-    class ViewHolder private constructor(val binding: ItemNewsBinding) :
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val item = getItem(position)
+
+        holder.bind(viewModel, item)
+    }
+
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        Timber.tag("Mohammad").i("NewsAdapter onCreateViewHolder")
+        return ViewHolder.from(parent)
+    }
+
+    class ViewHolder private constructor(private val binding: ItemNewsBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(viewModel: NewsViewModel, item: News) {
 
-            binding.title.text = item.title
-            binding.content.text = item.description
+            binding.viewModel = viewModel
+            binding.news = item
+
+            binding.executePendingBindings()
 
 
         }
@@ -34,15 +49,7 @@ class NewsAdapter(private val viewModel: NewsViewModel) :
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder.from(parent)
-    }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = getItem(position)
-
-        holder.bind(viewModel, item)
-    }
 }
 
 class NewsDiffCallback : DiffUtil.ItemCallback<News>() {

@@ -1,7 +1,10 @@
 package com.test.beln.ui
 
+import android.util.Log
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.distinctUntilChanged
@@ -25,15 +28,15 @@ class NewsViewModel @Inject constructor(
     private val newsRepository: NewsRepository
 ) : ViewModel() {
 
-    private val _forceUpdate = MutableLiveData(false)
+    private val _forceUpdate = MutableLiveData<Boolean>(false)
 
     private val _items: LiveData<List<News>> = _forceUpdate.switchMap { forceUpdate ->
         Timber.tag("Mohammad").i("_items: forceUpdate")
         if (forceUpdate) {
-            _dataLoading.value = true
+//            _dataLoading.value = true
             viewModelScope.launch {
                 newsRepository.refreshNews()
-                _dataLoading.value = false
+//                _dataLoading.value = false
             }
         }
         newsRepository.observeNews().distinctUntilChanged().switchMap { filterNews(it) }
@@ -43,19 +46,19 @@ class NewsViewModel @Inject constructor(
 
 
     private fun filterNews(newsResult: MyResult<List<News>>): LiveData<List<News>> {
-        Timber.tag("Mohammad").i("newsResult %s",newsResult.toString())
+        Timber.tag("Mohammad").i("newsResult %s", newsResult.toString())
         // TODO: This is a good case for liveData builder. Replace when stable.
         val result = MutableLiveData<List<News>>()
 
         if (newsResult is MyResult.Success) {
-            isDataLoadingError.value = false
+//            isDataLoadingError.value = false
             viewModelScope.launch {
                 result.value = filterItems(newsResult.data, getSavedFilterType())
             }
         } else {
             result.value = emptyList()
 //            showSnackbarMessage(R.string.loading_tasks_error)
-            isDataLoadingError.value = true
+//            isDataLoadingError.value = true
         }
 
         return result
@@ -103,59 +106,66 @@ class NewsViewModel @Inject constructor(
         loadNews(false)
     }
 
+    /**
+     * @param forceUpdate Pass in true to refresh the data in the [TasksDataSource]
+     */
+    private fun loadNews(forceUpdate: Boolean) {
+        Timber.tag("Mohammad").i("loadNews %s %s", forceUpdate, _forceUpdate.value)
+        _forceUpdate.value = forceUpdate
+    }
+
     init {
         // Set initial state
 //        setFiltering(getSavedFilterType())
-
         Timber.tag("Mohammad").i("Init")
 
         loadNews(true)
     }
 
 
-//    val items: LiveData<List<News>> = _items
+////    val items: LiveData<List<News>> = _items
+//
+//    private val _dataLoading = MutableLiveData<Boolean>()
+//    val dataLoading: LiveData<Boolean> = _dataLoading
+//
+//    private val _currentFilteringLabel = MutableLiveData<Int>()
+//    val currentFilteringLabel: LiveData<Int> = _currentFilteringLabel
+//
+//    private val _noTasksLabel = MutableLiveData<Int>()
+//    val noTasksLabel: LiveData<Int> = _noTasksLabel
+//
+//    private val _noTaskIconRes = MutableLiveData<Int>()
+//    val noTaskIconRes: LiveData<Int> = _noTaskIconRes
+//
+//    private val _tasksAddViewVisible = MutableLiveData<Boolean>()
+//    val tasksAddViewVisible: LiveData<Boolean> = _tasksAddViewVisible
+//
+////    private val _snackbarText = MutableLiveData<Event<Int>>()
+////    val snackbarText: LiveData<Event<Int>> = _snackbarText
+//
+//    // Not used at the moment
+//    private val isDataLoadingError = MutableLiveData<Boolean>()
+//
+//
+//    private var resultMessageShown: Boolean = false
+//
+//    // This LiveData depends on another so we can use a transformation.
+////    val empty: LiveData<Boolean> = Transformations.map(_items) {
+////        it.isEmpty()
+////    }
+//
+//
 
-    private val _dataLoading = MutableLiveData<Boolean>()
-    val dataLoading: LiveData<Boolean> = _dataLoading
-
-    private val _currentFilteringLabel = MutableLiveData<Int>()
-    val currentFilteringLabel: LiveData<Int> = _currentFilteringLabel
-
-    private val _noTasksLabel = MutableLiveData<Int>()
-    val noTasksLabel: LiveData<Int> = _noTasksLabel
-
-    private val _noTaskIconRes = MutableLiveData<Int>()
-    val noTaskIconRes: LiveData<Int> = _noTaskIconRes
-
-    private val _tasksAddViewVisible = MutableLiveData<Boolean>()
-    val tasksAddViewVisible: LiveData<Boolean> = _tasksAddViewVisible
-
-//    private val _snackbarText = MutableLiveData<Event<Int>>()
-//    val snackbarText: LiveData<Event<Int>> = _snackbarText
-
-    // Not used at the moment
-    private val isDataLoadingError = MutableLiveData<Boolean>()
-
-
-    private var resultMessageShown: Boolean = false
-
-    // This LiveData depends on another so we can use a transformation.
-//    val empty: LiveData<Boolean> = Transformations.map(_items) {
-//        it.isEmpty()
+//
+//    fun refresh() {
+//        _forceUpdate.value = true
 //    }
-
-
-    /**
-     * @param forceUpdate Pass in true to refresh the data in the [TasksDataSource]
-     */
-    private fun loadNews(forceUpdate: Boolean) {
-        Timber.tag("Mohammad").i("loadNews %s",forceUpdate)
-        _forceUpdate.value = forceUpdate
-    }
-
-    fun refresh() {
-        _forceUpdate.value = true
-    }
+//
+//    fun start() {
+//        Timber.tag("Mohammad").i("items: %s",_items.value)
+//        loadNews(!_forceUpdate.value!!)
+//
+//    }
 
 }
 

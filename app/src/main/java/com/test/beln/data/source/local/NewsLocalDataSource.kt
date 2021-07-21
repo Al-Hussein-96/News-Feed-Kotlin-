@@ -20,7 +20,7 @@ class NewsLocalDataSource internal constructor(
     }
 
 
-    override suspend fun getNews(): MyResult<List<News>> = withContext(ioDispatcher) {
+    override suspend fun getAllNewsFeed(): MyResult<List<News>> = withContext(ioDispatcher) {
         return@withContext try {
             MyResult.Success(newsDao.getNews())
         } catch (e: Exception) {
@@ -28,7 +28,33 @@ class NewsLocalDataSource internal constructor(
         }
     }
 
+    override suspend fun getNews(newsId: String): MyResult<News> = withContext(ioDispatcher) {
+        try {
+            val news = newsDao.getNewsById(newsId)
+            if (news != null) {
+                return@withContext MyResult.Success(news)
+            } else {
+                return@withContext MyResult.Error(Exception("Task not found!"))
+            }
+        } catch (e: Exception) {
+            return@withContext MyResult.Error(e)
+        }
+    }
+
     override suspend fun refreshTasks() {
         TODO("Not yet implemented")
+    }
+
+
+    override suspend fun saveNews(news: News) {
+        newsDao.insertNews(news)
+    }
+
+    override suspend fun deleteAllNews() {
+        newsDao.deleteNews()
+    }
+
+    override suspend fun deleteNewsLazy(newsId: String) {
+        newsDao.deleteNewsByIdLazy(newsId)
     }
 }
